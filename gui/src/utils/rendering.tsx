@@ -262,15 +262,19 @@ class RadarRendering {
         // this.renderDistance(ctx, canvas, radarPosition, resource.location, this.ResourceSize, rX, rY);
     }
 
-    static renderMob(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, radarPosition: any, mob: { mob_type: string; health: { value: number; max: number }; avatar?: string; enchant?: number; harvestable_type?: string; location: { x: number; y: number }; tier?: number, aggroradius: string }, zoom: number, displayedSettings: any ) {
+    static renderMob(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, radarPosition: any, mob: { mob_type: string; health: { value: number; max: number }; unique_name?: string; avatar?: string; enchant?: number; harvestable_type?: string; location: { x: number; y: number }; tier?: number, aggroradius: string }, zoom: number, displayedSettings: any ) {
         if (!displayedSettings.object_types.includes('MOBS')) {
             return;
         }
 
         let renderResource = false
+        const rX =  this.getRelativePositionX(radarPosition, mob.location, zoom);
+        const rY =  this.getRelativePositionY(radarPosition, mob.location, zoom);
 
         if (mob.mob_type === 'HARVESTABLE' && displayedSettings.object_types.includes('RESOURCE')) {
             renderResource = true;
+            // const mobName = `${mob.unique_name} (${mob.mob_type})`;
+            // this.renderValue(ctx, canvas, this.ResourceSize, rX, rY, mobName);
             
             /* Check if resource is displayed */
             const settings = mob.harvestable_type ? displayedSettings.resources[mob.harvestable_type].find(
@@ -283,8 +287,7 @@ class RadarRendering {
             }
         }
 
-        const rX =  this.getRelativePositionX(radarPosition, mob.location, zoom);
-        const rY =  this.getRelativePositionY(radarPosition, mob.location, zoom);
+        
         
         if(renderResource){
             /* Render Iteam */
@@ -295,6 +298,7 @@ class RadarRendering {
             };
         } else {
             const mobHp = `${mob.health.value} / ${mob.health.max}`;
+            
             
 
             if(mob.avatar && mob.mob_type !== 'HARVESTABLE'){
