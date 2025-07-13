@@ -39,7 +39,13 @@ if __name__ == "__main__":
     file_path = os.path.join(os.path.dirname(__file__), 'items.txt')
     items = load_items(file_path)
     
-    items_by_id = {}
+    items_by_id = {
+        "0": {
+            "id": "0",
+            "unique_name": "UNIQUE_HIDEOUT",
+            "name": "Hideout Construction Kit"
+        },
+    }
     items_by_unique_name = {}
     
     for item in items:

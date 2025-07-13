@@ -1,4 +1,9 @@
 {
+    "0": {
+        "id": "0",
+        "unique_name": "UNIQUE_HIDEOUT",
+        "name": "Hideout Construction Kit"
+    },
     "1": {
         "id": "1",
         "unique_name": "UNIQUE_HIDEOUT",
