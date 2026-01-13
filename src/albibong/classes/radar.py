@@ -356,9 +356,37 @@ class Radar(BaseModel):
 
         return struct.unpack('ff', x + y)
 
-    def _decrypt_bytes(self, data, xor_code, offset):
+    def _decrypt_bytes(self, data, xor_code, offset=0):
+        # Mutates `data` in-place by XOR-ing each byte with a key.
+        # `xor_code` can be:
+        # - int: single-byte XOR key (e.g., 0x5A)
+        # - bytes/bytearray/list[int]/tuple[int]: repeating multi-byte key
+
+        # Case 1: single-byte key
+        if isinstance(xor_code, int):
+            key = xor_code & 0xFF
+            for i in range(len(data)):
+                data[i] ^= key
+            return
+
+        # Case 2: sequence key (bytes/bytearray/list/tuple)
+        try:
+            n = len(xor_code)
+        except TypeError:
+            # Fallback: attempt to coerce to int and treat as single-byte key
+            key = int(xor_code) & 0xFF
+            for i in range(len(data)):
+                data[i] ^= key
+            return
+
+        # Empty key -> no-op (prevents ZeroDivisionError)
+        if n == 0:
+            return
+
+        # Repeating multi-byte key
         for i in range(len(data)):
-            data[i] ^= xor_code[(i + offset) % len(xor_code)]
+            data[i] ^= (xor_code[(i + offset) % n] & 0xFF)
+
 
     def change_location(self, who_call = "unknown"):
         print(f"Change location called by {who_call}")
