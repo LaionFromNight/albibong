@@ -45,7 +45,7 @@ class RadarRendering {
         const adjustedX = canvas.width / 2 - rX - itemSize / 2 + 5;
         const adjustedY = canvas.height / 2 - rY - itemSize / 2 + itemSize + 10;
         
-        ctx.fillText(distance.toString(), adjustedX, adjustedY);;
+        ctx.fillText(distance.toString(), adjustedX, adjustedY);
     }
 
     static renderValue(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, itemSize: number, rX: number, rY: number, value: string) {

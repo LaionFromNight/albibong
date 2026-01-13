@@ -80,7 +80,7 @@ const DPSMeter = () => {
   };
 
   const resetDamage = () => {
-    var partyMembers: string[] = [];
+    const partyMembers: string[] = [];
     world.party.forEach((member) => {
       partyMembers.push(member.username);
     });
@@ -95,7 +95,7 @@ const DPSMeter = () => {
   };
 
   const formatDamageToText = () => {
-    var textToCopy = "";
+    let textToCopy = "";
     world.party.map((member, index) => {
       textToCopy += `${index + 1}.${member.username}: ${~~(
         member.damage_dealt / 1000

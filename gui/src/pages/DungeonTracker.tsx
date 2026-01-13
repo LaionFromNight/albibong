@@ -23,7 +23,7 @@ const DungeonTracker = () => {
     if (selectedFilter == "ALL") {
       setFilteredDungeon(world.list_dungeon);
     } else {
-      let filteredData = world.list_dungeon.filter(
+      const filteredData = world.list_dungeon.filter(
         (dungeon) => dungeon.type == selectedFilter
       );
       setFilteredDungeon(filteredData);

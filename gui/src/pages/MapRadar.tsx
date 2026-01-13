@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, Container, Paper, Typography, Modal } from "@mui/material";
 import app from "../App.module.css";
 import { WorldContext } from "../providers/WorldProvider";
@@ -7,7 +7,7 @@ import RadarRendering from "../utils/rendering";
 const MapRadar = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const { radarWidget, radarPosition } = useContext(WorldContext);
+    const { me, radarWidget, radarPosition } = useContext(WorldContext);
     // const { radarPosition } = useContext(WorldContext);
     const [zoom, setZoom] = useState(3.5);
 
@@ -361,6 +361,63 @@ const MapRadar = () => {
 
     }, [radarPosition, zoom, radarWidget, displayedSettings]);
 
+    const normalize = (v?: string | null) => (v ?? "").trim().toLowerCase();
+
+    const { sortedPlayers, friendsCount, enemyCount } = useMemo(() => {
+        const myGuild = normalize(me?.guild);
+        const myAlliance = normalize(me?.alliance);
+
+        // najpierw uwzględnij filtry frakcji (tak jak miałeś)
+        const base = (radarWidget?.players_list ?? []).filter((p: any) => {
+            const key = p.faction as unknown as keyof typeof displayedSettings.players_factions;
+            return displayedSettings.players_factions[key]?.value ?? true;
+        });
+
+        const bucket = (p: any) => {
+            const pg = normalize(p.guild);
+            const pa = normalize(p.alliance);
+
+            // 2 = guild (na dole)
+            if (myGuild && pg && pg === myGuild) return 2;
+
+            // 1 = alliance (wyżej)
+            if (myAlliance && pa && pa === myAlliance) return 1;
+
+            // 0 = obcy (na górze)
+            return 0;
+        };
+
+        let friends = 0;
+        let enemies = 0;
+
+        for (const p of base) {
+            const b = bucket(p);
+            if (b === 0) enemies += 1;
+            else friends += 1; // guild + alliance
+        }
+
+        const sorted = base
+            .slice()
+            .sort((a: any, b: any) => {
+            const ba = bucket(a);
+            const bb = bucket(b);
+
+            // 0 (enemy) na górze, 2 (guild) na dole
+            if (ba !== bb) return ba - bb;
+
+            // wewnątrz bucketu możesz zostawić Twoje sortowanie po faction:
+            const fa = Number(a.faction);
+            const fb = Number(b.faction);
+            if (fa !== fb) return fb - fa;
+
+            // na koniec stabilnie po nicku
+            return String(a.username).localeCompare(String(b.username));
+            });
+
+        return { sortedPlayers: sorted, friendsCount: friends, enemyCount: enemies };
+    }, [me?.guild, me?.alliance, radarWidget?.players_list, displayedSettings.players_factions]);
+
+
     return (
         // <div className={app.container}>
         <Container className={app.container} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
@@ -487,47 +544,63 @@ const MapRadar = () => {
                     <canvas ref={canvasRef} width={500} height={500} style={{ border: '2px solid red', position: 'absolute', transform: `translate(-50%, 0%)` }} />
                 </Box>
                 <Box sx={{ flex: 1, textAlign: 'left', marginTop: '20px', marginLeft: '20px' }}>
-                    <Box sx={{ maxHeight: '500px', overflowY: 'auto' }}>
-                        {radarWidget.players_list.length > 0 && radarWidget.players_list
-                            .sort((a, b) => Number(b.faction) - Number(a.faction))
-                            .filter(player => displayedSettings.players_factions[player.faction as unknown as keyof typeof displayedSettings.players_factions].value)
-                            .map((player) => (
-                                <Paper key={player.id} sx={{ padding: '10px', marginBottom: '10px', border: '1px solid black' }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <img
-                                            src={`/public/mapMarker/faction/faction_${player.faction}.png`}
-                                            alt={`Faction ${player.faction}`}
-                                            style={{ width: '34px', height: '34px' }}
-                                        />
-                                        <Typography 
-                                            variant="body1" 
-                                            sx={{ color: player.isMounted ? "blue" : "red" }}
-                                        >
-                                            {player.isMounted ? "M" : "D"}
-                                        </Typography>
-                                        <Typography variant="body1">{player.username}, ID: {player.id}</Typography>
-                                    </Box>
-                                    <Typography variant="body1">Guild: {player.guild}, Alliance: {player.alliance}</Typography>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                        {player.equipments.map((equipment, index) => (
-                                            equipment === "None" ? (
-                                                <Box
-                                                    key={index}
-                                                    sx={{ width: '40px', height: '40px', backgroundColor: '#333', border: '2px solid orange' }}
-                                                />
-                                            ) : (
-                                                <img
-                                                    key={index}
-                                                    src={`https://render.albiononline.com/v1/item/${equipment}`}
-                                                    alt={equipment}
-                                                    style={{ width: '40px', height: '40px', border: '2px solid orange' }}
-                                                />
-                                            )
-                                        ))}
-                                    </Box>
-                                </Paper>
-                            ))}
-                    </Box>
+                    <Box sx={{ maxHeight: "500px", overflowY: "auto", position: "relative" }}>
+                        {/* STICKY HEADER */}
+                        <Paper
+                            sx={{
+                            position: "sticky",
+                            top: 0,
+                            zIndex: 10,
+                            padding: "10px",
+                            marginBottom: "10px",
+                            border: "1px solid black",
+                            backgroundColor: "#0f2a33",
+                            }}
+                        >
+                            <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                            Enemy: {enemyCount}, Friends: {friendsCount}
+                            </Typography>
+                        </Paper>
+
+                        {/* LIST */}
+                        {sortedPlayers.map((player: any) => (
+                            <Paper key={player.id} sx={{ padding: "10px", marginBottom: "10px", border: "1px solid black" }}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <img
+                                src={`/mapMarker/faction/faction_${player.faction}.png`}
+                                alt={`Faction ${player.faction}`}
+                                style={{ width: "34px", height: "34px" }}
+                                />
+                                <Typography variant="body1" sx={{ color: player.isMounted ? "blue" : "red" }}>
+                                {player.isMounted ? "M" : "D"}
+                                </Typography>
+                                <Typography variant="body1">
+                                {player.username}, ID: {player.id}
+                                </Typography>
+                            </Box>
+
+                            <Typography variant="body1">
+                                Guild: {player.guild}, Alliance: {player.alliance}
+                            </Typography>
+
+                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                                {player.equipments.map((equipment: string, index: number) =>
+                                equipment === "None" ? (
+                                    <Box key={index} sx={{ width: "40px", height: "40px", backgroundColor: "#333", border: "2px solid orange" }} />
+                                ) : (
+                                    <img
+                                    key={index}
+                                    src={`https://render.albiononline.com/v1/item/${equipment}`}
+                                    alt={equipment}
+                                    style={{ width: "40px", height: "40px", border: "2px solid orange" }}
+                                    />
+                                )
+                                )}
+                            </Box>
+                            </Paper>
+                        ))}
+                        </Box>
+
                 </Box>
             </Box>
             <Box sx={{ textAlign: 'center' }}>

@@ -91,7 +91,7 @@ const Init = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (lastMessage !== null) {
-      let ws_event = JSON.parse(lastMessage.data);
+      const ws_event = JSON.parse(lastMessage.data);
       if (ws_event.type == "init_world") {
         initWorld(ws_event.payload.me, ws_event.payload.world);
       } else if (ws_event.type == "init_character") {
