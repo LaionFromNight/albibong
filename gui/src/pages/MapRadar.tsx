@@ -417,6 +417,36 @@ const MapRadar = () => {
         return { sortedPlayers: sorted, friendsCount: friends, enemyCount: enemies };
     }, [me?.guild, me?.alliance, radarWidget?.players_list, displayedSettings.players_factions]);
 
+    const setAllResourcesOfType = (resourceKey: string, value: boolean) => {
+        setDisplayedSettings(prev => {
+            const current = prev.resources[resourceKey as keyof typeof prev.resources] as any[] | undefined;
+            if (!current) return prev;
+
+            return {
+                ...prev,
+                resources: {
+                    ...prev.resources,
+                    [resourceKey]: current.map(it => ({ ...it, value })),
+                },
+            };
+        });
+    };
+
+    const toggleResourceEntry = (resourceKey: string, index: number) => {
+        setDisplayedSettings(prev => {
+            const current = prev.resources[resourceKey as keyof typeof prev.resources] as any[] | undefined;
+            if (!current) return prev;
+
+            return {
+                ...prev,
+                resources: {
+                    ...prev.resources,
+                    [resourceKey]: current.map((it, i) => (i === index ? { ...it, value: !it.value } : it)),
+                },
+            };
+        });
+    };
+
 
     return (
         // <div className={app.container}>
@@ -498,25 +528,44 @@ const MapRadar = () => {
                                     </Box>
                                     <Box>
                                         <Typography variant="body1">Resources</Typography>
-                                        {Object.keys(displayedSettings.resources).map(resource => (
-                                            <Box key={resource}>
-                                                <Typography variant="body2">{resource}</Typography>
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                                                    {(displayedSettings.resources[resource as keyof typeof displayedSettings.resources] as any[]).map((res, index) => (
+
+                                        {Object.keys(displayedSettings.resources).map((resourceKey) => (
+                                            <Box key={resourceKey} sx={{ marginBottom: "10px" }}>
+                                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                                        {resourceKey}
+                                                    </Typography>
+
+                                                    <Box sx={{ display: "flex", gap: "8px" }}>
                                                         <Button
-                                                            key={index}
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => setAllResourcesOfType(resourceKey, true)}
+                                                        >
+                                                            All
+                                                        </Button>
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            onClick={() => setAllResourcesOfType(resourceKey, false)}
+                                                        >
+                                                            None
+                                                        </Button>
+                                                    </Box>
+                                                </Box>
+
+                                                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                                                    {(displayedSettings.resources[resourceKey as keyof typeof displayedSettings.resources] as any[]).map((res, index) => (
+                                                        <Button
+                                                            key={res.label ?? index}
                                                             variant={res.value ? "contained" : "outlined"}
-                                                            sx={{ margin: '5px', flex: index < 2 ? '1 1 calc(50% - 10px)' : '1 1 calc(20% - 10px)' }}
-                                                            onClick={() => setDisplayedSettings(prev => {
-                                                                const newResources = { ...prev.resources };
-                                                                (newResources[resource as keyof typeof displayedSettings.resources] as any[])[index].value = !(newResources[resource as keyof typeof displayedSettings.resources] as any[])[index].value;
-                                                                return { ...prev, resources: newResources };
-                                                            })}
+                                                            sx={{ margin: "5px", flex: index < 2 ? "1 1 calc(50% - 10px)" : "1 1 calc(20% - 10px)" }}
+                                                            onClick={() => toggleResourceEntry(resourceKey, index)}
                                                         >
                                                             <img
-                                                                src={`/public/mapMarker/resources/${res.label}.png`}
+                                                                src={`/mapMarker/resources/${res.label}.png`}
                                                                 alt={res.label}
-                                                                style={{ width: '40px', height: '40px' }}
+                                                                style={{ width: "40px", height: "40px" }}
                                                             />
                                                         </Button>
                                                     ))}
@@ -524,6 +573,7 @@ const MapRadar = () => {
                                             </Box>
                                         ))}
                                     </Box>
+
                                 </Box>
                             </Box>
                             <Button variant="contained" onClick={() => setActiveTab('')}>Close</Button>
