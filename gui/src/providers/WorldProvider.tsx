@@ -8,6 +8,8 @@ type PlayerCharacter = {
   might: number;
   favor: number;
   weapon: string;
+  guild: string;
+  alliance: string;
 };
 
 export type HarvestableObject = {
@@ -225,6 +227,8 @@ export const WorldContext = React.createContext<WorldContextData>({
     weapon: "Waiting for backend",
     might: 0,
     favor: 0,
+    guild: "Waiting for backend",
+    alliance: "Waiting for backend",
   },
   world: {
     map: "None",
@@ -287,6 +291,8 @@ const WorldProvider = ({ children }: WorldProviderProps) => {
     weapon: "Waiting for backend",
     might: 0,
     favor: 0,
+    guild: "Waiting for backend",
+    alliance: "Waiting for backend",
   });
 
   const [radarPosition, setRadarPosition] = useState<RadarPosition>({
@@ -334,6 +340,8 @@ const WorldProvider = ({ children }: WorldProviderProps) => {
       might: me.might,
       favor: me.favor,
       weapon: me.weapon,
+      guild: me.guild,
+      alliance: me.alliance,
     });
     setWorld({
       map: world.map,
@@ -354,6 +362,8 @@ const WorldProvider = ({ children }: WorldProviderProps) => {
       might: me.might,
       favor: me.favor,
       weapon: me.weapon,
+      guild: me.guild,
+      alliance: me.alliance,
     });
   };
 
@@ -438,7 +448,7 @@ const WorldProvider = ({ children }: WorldProviderProps) => {
   };
 
   const updateDungeonFilter = (list_dungeon: Dungeon[]) => {
-    let dungeonFilter = new Set<string>();
+    const dungeonFilter = new Set<string>();
     dungeonFilter.add("ALL");
     list_dungeon.forEach((dungeon) => {
       dungeonFilter.add(dungeon.type);

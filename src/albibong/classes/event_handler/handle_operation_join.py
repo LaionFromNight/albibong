@@ -3,6 +3,7 @@ from albibong.classes.location import Location
 from albibong.classes.utils import Utils
 from albibong.classes.world_data import WorldData
 from albibong.threads.websocket_server import send_event
+import json
 
 
 def handle_operation_join(world_data: WorldData, parameters):
@@ -10,7 +11,8 @@ def handle_operation_join(world_data: WorldData, parameters):
     world_data.me.username = parameters[2]
     world_data.me.uuid = Utils.convert_int_arr_to_uuid(parameters[1])
     world_data.me.guild = parameters[57] if 57 in parameters else ""
-    world_data.me.alliance = parameters[77] if 77 in parameters else ""
+    world_data.me.alliance = parameters[78] if 78 in parameters else ""
+    print(json.dumps(parameters, default=str, indent=2))
 
     # update relative id if character has initialized before
     WorldDataUtils.convert_id_to_name(
@@ -57,6 +59,8 @@ def ws_init_character(world_data: WorldData):
             "might": world_data.me.might_gained,
             "favor": world_data.me.favor_gained,
             "weapon": world_data.me.equipment[0].image,
+            "guild": world_data.me.guild,
+            "alliance": world_data.me.alliance,
         },
     }
     send_event(event)
