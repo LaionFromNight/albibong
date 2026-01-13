@@ -199,6 +199,10 @@ const MapRadar = () => {
     
     const [activeTab, setActiveTab] = useState('map');
 
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    const toggleFullscreen = () => setIsFullscreen(v => !v);
+
     // const radarPosition = {
     //     x: 180,
     //     y: 100
@@ -322,6 +326,27 @@ const MapRadar = () => {
     //         // "equipments": ["T6_MAIN_DAGGER", "T6_OFF_TORCH", "T6_HEAD_LEATHER_SET3", "T6_ARMOR_LEATHER_SET2", "T6_SHOES_LEATHER_SE", "T8_BAG", "T4_CAPEITEM_FW_MARTLOCK@3", "T8_MOUNT_DIREBOAR_FW_LYMHURST_ELITE", "None", "None"],
     //     }],
     // };
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const parent = canvas.parentElement;
+        if (!parent) return;
+
+        // ustaw canvas internal resolution na rozmiar kontenera
+        if (isFullscreen) {
+            const rect = parent.getBoundingClientRect();
+            const w = Math.floor(rect.width);
+            const h = Math.floor(rect.height);
+
+            if (canvas.width !== w) canvas.width = w;
+            if (canvas.height !== h) canvas.height = h;
+        } else {
+            // normalny tryb
+            if (canvas.width !== 500) canvas.width = 500;
+            if (canvas.height !== 500) canvas.height = 500;
+        }
+    }, [isFullscreen]);
 
 
     useEffect(() => {
@@ -359,7 +384,7 @@ const MapRadar = () => {
             RadarRendering.renderTheScreenView(ctx, canvas, zoom);
         }
 
-    }, [radarPosition, zoom, radarWidget, displayedSettings]);
+    }, [radarPosition, zoom, radarWidget, displayedSettings, isFullscreen]);
 
     const normalize = (v?: string | null) => (v ?? "").trim().toLowerCase();
 
@@ -450,9 +475,33 @@ const MapRadar = () => {
 
     return (
         // <div className={app.container}>
-        <Container className={app.container} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+        <Box
+            className={app.container}
+            sx={{
+                ...(isFullscreen
+                    ? {
+                        position: "fixed",
+                        inset: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        zIndex: 9999,
+                        backgroundColor: "#0b1f28",
+                        padding: "10px",
+                        boxSizing: "border-box",
+                    }
+                    : {}),
+            }}
+>
             <Box sx={{ alignSelf: 'flex-end', marginBottom: '10px' }}>
                 <Button variant="contained" onClick={() => setActiveTab('settings')}>Settings</Button>
+                <Button
+                    variant="contained"
+                    sx={{ marginLeft: "10px" }}
+                    onClick={toggleFullscreen}
+                >
+                    {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                </Button>
+
                 {activeTab === 'settings' && (
                     <Modal
                         open={true}
@@ -581,83 +630,137 @@ const MapRadar = () => {
                     </Modal>
                 )}
             </Box>
-            <Box sx={{ textAlign: 'left' }}>
-                <Paper sx={{ padding: '5px', border: '1px solid black' }}>
-                    <Typography>Zoom: {zoom.toFixed(1)}</Typography>
-                </Paper>
-                <Paper sx={{ padding: '5px', border: '1px solid black' }}>
-                    <Typography>Position: x {radarPosition.x.toFixed(1)} y {radarPosition.y.toFixed(1)}</Typography>
-                </Paper>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                <Box sx={{ flex: 1, width: 500, height: 508, margin: '0px 0px', textAlign: 'center', border: '2px solid blue', overflow: 'hidden', position: 'relative' }}>
-                    <canvas ref={canvasRef} width={500} height={500} style={{ border: '2px solid red', position: 'absolute', transform: `translate(-50%, 0%)` }} />
+            {!isFullscreen && (
+                <Box sx={{ textAlign: "left" }}>
+                    <Paper sx={{ padding: "5px", border: "1px solid black" }}>
+                        <Typography>Zoom: {zoom.toFixed(1)}</Typography>
+                    </Paper>
+                    <Paper sx={{ padding: "5px", border: "1px solid black" }}>
+                        <Typography>Position: x {radarPosition.x.toFixed(1)} y {radarPosition.y.toFixed(1)}</Typography>
+                    </Paper>
                 </Box>
-                <Box sx={{ flex: 1, textAlign: 'left', marginTop: '20px', marginLeft: '20px' }}>
-                    <Box sx={{ maxHeight: "500px", overflowY: "auto", position: "relative" }}>
+            )}
+
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: "12px",
+                    width: "100%",
+                    ...(isFullscreen ? { height: "calc(100vh - 60px)" } : {}),
+                }}
+            >
+                {/* MAPA */}
+                <Box
+                    sx={{
+                        flex: isFullscreen ? "1 1 auto" : 1,
+                        position: "relative",
+                        border: "2px solid blue",
+                        overflow: "hidden",
+                        ...(isFullscreen ? { height: "100%" } : { width: 500, height: 508 }),
+                    }}
+                >
+                    <canvas
+                        ref={canvasRef}
+                        style={{
+                            border: "2px solid red",
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                        }}
+                    />
+                </Box>
+
+                {/* LISTA */}
+                <Box
+                    sx={{
+                        flex: "0 0 auto",
+                        ...(isFullscreen
+                            ? { width: "380px", height: "100%" }
+                            : { flex: 1, textAlign: "left", marginTop: "20px", marginLeft: "20px" }),
+                    }}
+                >
+                    <Box sx={{ height: "100%", maxHeight: isFullscreen ? "100%" : "500px", overflowY: "auto", position: "relative" }}>
                         {/* STICKY HEADER */}
                         <Paper
                             sx={{
-                            position: "sticky",
-                            top: 0,
-                            zIndex: 10,
-                            padding: "10px",
-                            marginBottom: "10px",
-                            border: "1px solid black",
-                            backgroundColor: "#0f2a33",
+                                position: "sticky",
+                                top: 0,
+                                zIndex: 10,
+                                padding: "10px",
+                                marginBottom: "10px",
+                                border: "1px solid black",
+                                backgroundColor: "#0f2a33",
                             }}
                         >
                             <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                            Enemy: {enemyCount}, Friends: {friendsCount}
+                                Enemy: {enemyCount}, Friends: {friendsCount}
                             </Typography>
                         </Paper>
 
                         {/* LIST */}
                         {sortedPlayers.map((player: any) => (
-                            <Paper key={player.id} sx={{ padding: "10px", marginBottom: "10px", border: "1px solid black" }}>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                <img
-                                src={`/mapMarker/faction/faction_${player.faction}.png`}
-                                alt={`Faction ${player.faction}`}
-                                style={{ width: "34px", height: "34px" }}
-                                />
-                                <Typography variant="body1" sx={{ color: player.isMounted ? "blue" : "red" }}>
-                                {player.isMounted ? "M" : "D"}
-                                </Typography>
-                                <Typography variant="body1">
-                                {player.username}, ID: {player.id}
-                                </Typography>
-                            </Box>
-
-                            <Typography variant="body1">
-                                Guild: {player.guild}, Alliance: {player.alliance}
-                            </Typography>
-
-                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                                {player.equipments.map((equipment: string, index: number) =>
-                                equipment === "None" ? (
-                                    <Box key={index} sx={{ width: "40px", height: "40px", backgroundColor: "#333", border: "2px solid orange" }} />
-                                ) : (
+                            <Paper
+                                key={player.id}
+                                sx={{
+                                    padding: "10px",
+                                    marginBottom: "10px",
+                                    border: "1px solid black",
+                                }}
+                            >
+                                <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                     <img
-                                    key={index}
-                                    src={`https://render.albiononline.com/v1/item/${equipment}`}
-                                    alt={equipment}
-                                    style={{ width: "40px", height: "40px", border: "2px solid orange" }}
+                                        src={`/mapMarker/faction/faction_${player.faction}.png`}
+                                        alt={`Faction ${player.faction}`}
+                                        style={{ width: "34px", height: "34px" }}
                                     />
-                                )
-                                )}
-                            </Box>
+                                    <Typography variant="body1" sx={{ color: player.isMounted ? "blue" : "red" }}>
+                                        {player.isMounted ? "M" : "D"}
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        {player.username}, ID: {player.id}
+                                    </Typography>
+                                </Box>
+
+                                <Typography variant="body1">
+                                    Guild: {player.guild}, Alliance: {player.alliance}
+                                </Typography>
+
+                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                                    {player.equipments.map((equipment: string, index: number) =>
+                                        equipment === "None" ? (
+                                            <Box
+                                                key={index}
+                                                sx={{
+                                                    width: "40px",
+                                                    height: "40px",
+                                                    backgroundColor: "#333",
+                                                    border: "2px solid orange",
+                                                }}
+                                            />
+                                        ) : (
+                                            <img
+                                                key={index}
+                                                src={`https://render.albiononline.com/v1/item/${equipment}`}
+                                                alt={equipment}
+                                                style={{ width: "40px", height: "40px", border: "2px solid orange" }}
+                                            />
+                                        )
+                                    )}
+                                </Box>
                             </Paper>
                         ))}
-                        </Box>
-
+                    </Box>
                 </Box>
             </Box>
-            <Box sx={{ textAlign: 'center' }}>
-                <Button variant="contained" onClick={() => setZoom(zoom => Math.min(zoom + 0.2, 5))}>Zoom In</Button>
-                <Button variant="contained" onClick={() => setZoom(zoom => Math.max(zoom - 0.2, 1))}>Zoom Out</Button>
-            </Box>
-        </Container>
+
+            {!isFullscreen && (
+                <Box sx={{ textAlign: "center" }}>
+                    <Button variant="contained" onClick={() => setZoom(z => Math.min(z + 0.2, 5))}>Zoom In</Button>
+                    <Button variant="contained" onClick={() => setZoom(z => Math.max(z - 0.2, 1))}>Zoom Out</Button>
+                </Box>
+            )}
+        </Box>
         // </div>
     );
 };
