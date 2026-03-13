@@ -694,7 +694,7 @@ const MapRadar = () => {
                             }}
                         >
                             <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                                Enemy: {enemyCount}, Friends: {friendsCount}
+                                Enemy: <span style={{ color: enemyCount > 0 ? 'red' : 'inherit' }}>{enemyCount}</span>, Friends: {friendsCount}
                             </Typography>
                         </Paper>
 
