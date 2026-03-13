@@ -12,7 +12,7 @@ def handle_operation_join(world_data: WorldData, parameters):
     world_data.me.uuid = Utils.convert_int_arr_to_uuid(parameters[1])
     world_data.me.guild = parameters[57] if 57 in parameters else ""
     world_data.me.alliance = parameters[78] if 78 in parameters else ""
-    print(json.dumps(parameters, default=str, indent=2))
+    # print(json.dumps(parameters, default=str, indent=2))
 
     # update relative id if character has initialized before
     WorldDataUtils.convert_id_to_name(
