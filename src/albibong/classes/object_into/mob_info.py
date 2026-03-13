@@ -10,7 +10,7 @@ with open(jonPath) as json_file:
 
 
 class MobInfo:
-    offset = 15
+    offset = 16
     @classmethod
     def get_mob_id(cls, code: int):
         try:
