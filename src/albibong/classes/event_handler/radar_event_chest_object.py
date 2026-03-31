@@ -2,11 +2,13 @@ from albibong.classes.world_data import WorldData
 
 
 def radar_event_new_loot_chest(world_data: WorldData, parameters):
+    print("radar_event_new_loot_chest")
+    print(parameters)
+
     id = parameters[0]
     location = parameters[1]
     name = parameters[3]
     name2 = parameters[4]
-
     world_data.radar.add_cheast(id, location, name, name2, parameters)    
 
 def radar_event_new_treasure_chest(world_data: WorldData, parameters):
