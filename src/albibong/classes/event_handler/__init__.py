@@ -236,7 +236,6 @@ class EventHandler:
                 handler = self.event_handler[call_type]
                 return handler(world_data, parameters)
         else:
-            # TODO handle KEY_SYNC
             # if EVENT_TYPE_PARAMETER in parameters:
             #     if str(parameters[EVENT_TYPE_PARAMETER]) in event_code_data:
             #         print(f"Not Handled Event {event_code_data[str(parameters[EVENT_TYPE_PARAMETER])]}: {parameters}")
