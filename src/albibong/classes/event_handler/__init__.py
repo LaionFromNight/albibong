@@ -1,40 +1,11 @@
 from albibong.classes.event_handler.handle_event_character_equipment_changed import (
     handle_event_character_equipment_changed,
 )
-from albibong.classes.event_handler.handle_event_health import (
-    handle_event_health_update,
-    handle_event_health_updates,
-)
-from albibong.classes.event_handler.handle_event_in_combat_state_update import (
-    handle_event_in_combat_state_update,
-)
-from albibong.classes.event_handler.handle_event_might_and_favor_received_event import (
-    handle_event_might_and_favor_received_event,
-)
 from albibong.classes.event_handler.handle_event_new_character import (
     handle_event_new_character,
 )
-from albibong.classes.event_handler.handle_event_other_grabbed_loot import (
-    handle_event_other_grabbed_loot,
-)
-from albibong.classes.event_handler.handle_event_party import (
-    handle_event_party_disbanded,
-    handle_event_party_joined,
-    handle_event_party_player_joined,
-    handle_event_party_player_left,
-)
-from albibong.classes.event_handler.handle_event_update_fame import (
-    handle_event_update_fame,
-)
-from albibong.classes.event_handler.handle_event_update_re_spec_points import (
-    handle_event_update_re_spec_points,
-)
 from albibong.classes.event_handler.handle_operation_change_cluster import (
     handle_operation_change_cluster,
-)
-from albibong.classes.event_handler.handle_operation_farmable_harvest import (
-    handle_operation_farmable_get_product,
-    handle_operation_farmable_harvest,
 )
 from albibong.classes.event_handler.radar_event_harvestable_object import (
     radar_event_new_harvestable_object,
@@ -75,15 +46,10 @@ from albibong.classes.event_handler.handle_operation_move import handle_operatio
 from albibong.classes.world_data import WorldData
 from albibong.resources.EventCode import EventCode
 from albibong.resources.OperationCode import OperationCode
-import json
 
 EVENT_TYPE_PARAMETER = 252
 REQUEST_TYPE_PARAMETER = 253
 RESPONSE_TYPE_PARAMETER = 253
-
-# TODO handle KEY_SYNC
-# with open('/Users/lukaszkomur/Documents/Projects/albibong/src/albibong/resources/event_code.json') as f:
-#     event_code_data = json.load(f)
 
 
 class EventHandler:
@@ -92,35 +58,8 @@ class EventHandler:
         self.response_handler = {}
         self.event_handler = {}
 
-        # Event Handler
+        # Shared world state used by header/radar.
         self.event_handler[EventCode.NEW_CHARACTER.value] = handle_event_new_character
-        self.event_handler[EventCode.HEALTH_UPDATE.value] = handle_event_health_update
-        self.event_handler[EventCode.HEALTH_UPDATES.value] = handle_event_health_updates
-        self.event_handler[EventCode.IN_COMBAT_STATE_UPDATE.value] = (
-            handle_event_in_combat_state_update
-        )
-
-        self.event_handler[EventCode.UPDATE_FAME.value] = handle_event_update_fame
-        self.event_handler[EventCode.UPDATE_RE_SPEC_POINTS.value] = (
-            handle_event_update_re_spec_points
-        )
-        self.event_handler[EventCode.MIGHT_AND_FAVOR_RECEIVED_EVENT.value] = (
-            handle_event_might_and_favor_received_event
-        )
-
-        self.event_handler[EventCode.OTHER_GRABBED_LOOT.value] = (
-            handle_event_other_grabbed_loot
-        )
-        self.event_handler[EventCode.PARTY_JOINED.value] = handle_event_party_joined
-        self.event_handler[EventCode.PARTY_DISBANDED.value] = (
-            handle_event_party_disbanded
-        )
-        self.event_handler[EventCode.PARTY_PLAYER_JOINED.value] = (
-            handle_event_party_player_joined
-        )
-        self.event_handler[EventCode.PARTY_PLAYER_LEFT.value] = (
-            handle_event_party_player_left
-        )
         self.event_handler[EventCode.CHARACTER_EQUIPMENT_CHANGED.value] = (
             handle_event_character_equipment_changed
         )
@@ -187,12 +126,6 @@ class EventHandler:
         self.response_handler[OperationCode.JOIN.value] = handle_operation_join
         self.response_handler[OperationCode.CHANGE_CLUSTER.value] = (
             handle_operation_change_cluster
-        )
-        self.response_handler[OperationCode.FARMABLE_GET_PRODUCT.value] = (
-            handle_operation_farmable_get_product
-        )
-        self.response_handler[OperationCode.FARMABLE_HARVEST.value] = (
-            handle_operation_farmable_harvest
         )
 
     def on_request(self, world_data: WorldData, parameters):

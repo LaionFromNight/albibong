@@ -18,11 +18,8 @@ import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-  Agriculture,
-  Assessment,
   ChevronLeft,
   ChevronRight,
-  Speed,
   Map,
 } from "@mui/icons-material";
 import classNames from "classnames";
@@ -105,24 +102,7 @@ const Drawer = styled(MuiDrawer, {
 });
 
 const Navigation = () => {
-  const links = [
-    { pageName: "DPS Meter", url: "/", icon: <Speed /> },
-    {
-      pageName: "Dungeon Tracker",
-      url: "/dungeon-tracker",
-      icon: <Assessment />,
-    },
-    {
-      pageName: "Farming Tracker",
-      url: "/farming-tracker",
-      icon: <Agriculture />,
-    },
-    {
-      pageName: "Map Radar",
-      url: "/dps-marker",
-      icon: <Map />,
-    }
-  ];
+  const links = [{ pageName: "Radar", url: "/radar", icon: <Map /> }];
   const navigate = useNavigate();
 
   const [open, setOpen] = React.useState(false);
@@ -154,7 +134,7 @@ const Navigation = () => {
               CURRENT MAP: <b>{world.map}</b>
             </Typography>
             <Typography>
-              CURRENT DUNGEON: <b>{world.dungeon}</b>
+              IN DUNGEON: <b>{world.isInDungeon ? "YES" : "NO"}</b>
             </Typography>
           </div>
           <div className={styles.data}>

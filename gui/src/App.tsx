@@ -1,10 +1,12 @@
 import { useContext, useEffect } from "react";
-import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
+import {
+  Navigate,
+  Outlet,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom";
 import Navigation from "./components/Navigation";
-import DPSMeter from "./pages/DPSMeter";
-import DungeonTracker from "./pages/DungeonTracker";
-import FarmingTracker from "./pages/FarmingTracker";
-import MapRadar from "./pages/MapRadar";
+import Radar from "./pages/Radar";
 import WebsocketProvider, {
   WebsocketContext,
 } from "./providers/WebsocketProvider";
@@ -48,21 +50,17 @@ const Router = () => {
       element: <Layout />,
       children: [
         {
-          path: "/",
-          element: <DPSMeter />,
+          index: true,
+          element: <Radar />,
         },
         {
-          path: "/dungeon-tracker",
-          element: <DungeonTracker />,
-        },
-        {
-          path: "/farming-tracker",
-          element: <FarmingTracker />,
+          path: "/radar",
+          element: <Radar />,
         },
         {
           path: "/dps-marker",
-          element: <MapRadar />,
-        }
+          element: <Navigate replace to="/radar" />,
+        },
       ],
     },
   ]);
@@ -70,21 +68,12 @@ const Router = () => {
 };
 
 const Init = ({ children }: { children: React.ReactNode }) => {
-  const { lastMessage, sendMessage } = useContext(WebsocketContext);
+  const { lastMessage } = useContext(WebsocketContext);
   const {
     initPlayer,
     initWorld,
     updateHealthCheck,
-    updateFame,
-    updateReSpec,
-    updateSilver,
-    updateMightAndFavor,
     updateLocation,
-    updateIsDPSMeterRunning,
-    updateParty,
-    updateDungeon,
-    updateIsland,
-    updateIslandWidget,
     updateRadarPosition,
     updateRadarWidget,
   } = useContext(WorldContext);
@@ -98,53 +87,18 @@ const Init = ({ children }: { children: React.ReactNode }) => {
         initPlayer(ws_event.payload);
       } else if (ws_event.type == "health_check") {
         updateHealthCheck(ws_event.payload);
-      } else if (ws_event.type == "update_fame") {
-        updateFame(ws_event.payload.fame_gained);
-      } else if (ws_event.type == "update_re_spec") {
-        updateReSpec(ws_event.payload.re_spec_gained);
-      } else if (ws_event.type == "update_silver") {
-        updateSilver(ws_event.payload.username, ws_event.payload.silver_gained);
-      } else if (ws_event.type == "update_might_and_favor") {
-        updateMightAndFavor(
-          ws_event.payload.username,
-          ws_event.payload.might_gained,
-          ws_event.payload.favor_gained
-        );
       } else if (ws_event.type == "update_location") {
-        updateLocation(ws_event.payload.map, ws_event.payload.dungeon);
-      } else if (ws_event.type == "update_damage_meter") {
-        updateParty(ws_event.payload.party_members);
-      } else if (ws_event.type == "update_is_dps_meter_running") {
-        updateIsDPSMeterRunning(ws_event.payload.value);
-      } else if (ws_event.type == "update_dungeon") {
-        updateDungeon(ws_event.payload.list_dungeon);
-      } else if (ws_event.type == "update_island") {
-        updateIsland(ws_event.payload.list_island);
-      } else if (ws_event.type == "update_total_harvest_by_date") {
-        updateIslandWidget(
-          ws_event.payload.crops,
-          ws_event.payload.animals,
-          ws_event.payload.date
-        );
+        updateLocation(ws_event.payload.map, ws_event.payload.isInDungeon);
       } else if (ws_event.type == "radar_update") {
-        // console.log('radar_update', ws_event.payload);
         updateRadarWidget(ws_event.payload);
       } else if (ws_event.type == "radar_position_update") {
-        updateRadarPosition(ws_event.payload.position.x, ws_event.payload.position.y);
+        updateRadarPosition(
+          ws_event.payload.position.x,
+          ws_event.payload.position.y
+        );
       }
     }
   }, [lastMessage]);
-
-  useEffect(() => {
-    sendMessage({
-      type: "refresh_dungeon_list",
-      payload: { value: true },
-    });
-    sendMessage({
-      type: "refresh_island_list",
-      payload: { value: true },
-    });
-  }, []);
 
   return <>{children}</>;
 };

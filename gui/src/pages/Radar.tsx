@@ -1,0 +1,643 @@
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Box, Button, Modal, Paper, Typography } from "@mui/material";
+import app from "../App.module.css";
+import { WorldContext } from "../providers/WorldProvider";
+import RadarRendering from "../utils/rendering";
+
+const Radar = () => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const { me, radarWidget, radarPosition } = useContext(WorldContext);
+    const [zoom, setZoom] = useState(3.5);
+
+    const [displayedSettings, setDisplayedSettings] = useState({
+        object_types: ['RESOURCE', 'DUNGEONS', 'MOBS'],
+        dungeons: ['SOLO', 'AVALON', 'GROUP', 'CORRUPTED', 'HELLGATE', 'ROAMING', 'DISPLAY_NAME'],
+        players_factions: {
+            0: {
+                label: "NonPvP",
+                value: true,
+            },
+            1: {
+                label: "Martlock",
+                value: true,
+            },
+            2: {
+                label: "Lymhurst",
+                value: true,
+            },
+            3: {
+                label: "Bridgewatch",
+                value: true,
+            },
+            4: {
+                label: "Fort Sterling",
+                value: true,
+            },
+            5: {
+                label: "Thetford",
+                value: true,
+            },
+            6: {
+                label: "Caerleon",
+                value: true,
+            },
+            255: {
+                label: "PvP",
+                value: true,
+            }
+        },
+        resources: {
+            FIBER: [
+                {label: "fiber_2_0", value: true, tier: 2, enchant: 0},
+                {label: "fiber_3_0", value: true, tier: 3, enchant: 0},
+                {label: "fiber_4_0", value: true, tier: 4, enchant: 0},
+                {label: "fiber_4_1", value: true, tier: 4, enchant: 1},
+                {label: "fiber_4_2", value: true, tier: 4, enchant: 2},
+                {label: "fiber_4_3", value: true, tier: 4, enchant: 3},
+                {label: "fiber_4_4", value: true, tier: 4, enchant: 3},
+                {label: "fiber_5_0", value: true, tier: 5, enchant: 0},
+                {label: "fiber_5_1", value: true, tier: 5, enchant: 1},
+                {label: "fiber_5_2", value: true, tier: 5, enchant: 2},
+                {label: "fiber_5_3", value: true, tier: 5, enchant: 3},
+                {label: "fiber_5_4", value: true, tier: 5, enchant: 3},
+                {label: "fiber_6_0", value: true, tier: 6, enchant: 0},
+                {label: "fiber_6_1", value: true, tier: 6, enchant: 1},
+                {label: "fiber_6_2", value: true, tier: 6, enchant: 2},
+                {label: "fiber_6_3", value: true, tier: 6, enchant: 3},
+                {label: "fiber_6_4", value: true, tier: 6, enchant: 3},
+                {label: "fiber_7_0", value: true, tier: 7, enchant: 0},
+                {label: "fiber_7_1", value: true, tier: 7, enchant: 1},
+                {label: "fiber_7_2", value: true, tier: 7, enchant: 2},
+                {label: "fiber_7_3", value: true, tier: 7, enchant: 3},
+                {label: "fiber_7_4", value: true, tier: 7, enchant: 3},
+                {label: "fiber_8_0", value: true, tier: 8, enchant: 0},
+                {label: "fiber_8_1", value: true, tier: 8, enchant: 1},
+                {label: "fiber_8_2", value: true, tier: 8, enchant: 2},
+                {label: "fiber_8_3", value: true, tier: 8, enchant: 3},
+                {label: "fiber_8_4", value: true, tier: 8, enchant: 3},                
+            ],
+            WOOD: [
+                {label: "wood_2_0", value: true, tier: 2, enchant: 0},
+                {label: "wood_3_0", value: true, tier: 3, enchant: 0},
+                {label: "wood_4_0", value: true, tier: 4, enchant: 0},
+                {label: "wood_4_1", value: true, tier: 4, enchant: 1},
+                {label: "wood_4_2", value: true, tier: 4, enchant: 2},
+                {label: "wood_4_3", value: true, tier: 4, enchant: 3},
+                {label: "wood_4_4", value: true, tier: 4, enchant: 3},
+                {label: "wood_5_0", value: true, tier: 5, enchant: 0},
+                {label: "wood_5_1", value: true, tier: 5, enchant: 1},
+                {label: "wood_5_2", value: true, tier: 5, enchant: 2},
+                {label: "wood_5_3", value: true, tier: 5, enchant: 3},
+                {label: "wood_5_4", value: true, tier: 5, enchant: 3},
+                {label: "wood_6_0", value: true, tier: 6, enchant: 0},
+                {label: "wood_6_1", value: true, tier: 6, enchant: 1},
+                {label: "wood_6_2", value: true, tier: 6, enchant: 2},
+                {label: "wood_6_3", value: true, tier: 6, enchant: 3},
+                {label: "wood_6_4", value: true, tier: 6, enchant: 3},
+                {label: "wood_7_0", value: true, tier: 7, enchant: 0},
+                {label: "wood_7_1", value: true, tier: 7, enchant: 1},
+                {label: "wood_7_2", value: true, tier: 7, enchant: 2},
+                {label: "wood_7_3", value: true, tier: 7, enchant: 3},
+                {label: "wood_7_4", value: true, tier: 7, enchant: 3},
+                {label: "wood_8_0", value: true, tier: 8, enchant: 0},
+                {label: "wood_8_1", value: true, tier: 8, enchant: 1},
+                {label: "wood_8_2", value: true, tier: 8, enchant: 2},
+                {label: "wood_8_3", value: true, tier: 8, enchant: 3},
+                {label: "wood_8_4", value: true, tier: 8, enchant: 3},
+            ],
+            ROCK: [
+                {label: "rock_2_0", value: true, tier: 2, enchant: 0},
+                {label: "rock_3_0", value: true, tier: 3, enchant: 0},
+                {label: "rock_4_0", value: true, tier: 4, enchant: 0},
+                {label: "rock_4_1", value: true, tier: 4, enchant: 1},
+                {label: "rock_4_2", value: true, tier: 4, enchant: 2},
+                {label: "rock_4_3", value: true, tier: 4, enchant: 3},
+                {label: "rock_4_4", value: true, tier: 4, enchant: 3},
+                {label: "rock_5_0", value: true, tier: 5, enchant: 0},
+                {label: "rock_5_1", value: true, tier: 5, enchant: 1},
+                {label: "rock_5_2", value: true, tier: 5, enchant: 2},
+                {label: "rock_5_3", value: true, tier: 5, enchant: 3},
+                {label: "rock_5_4", value: true, tier: 5, enchant: 3},
+                {label: "rock_6_0", value: true, tier: 6, enchant: 0},
+                {label: "rock_6_1", value: true, tier: 6, enchant: 1},
+                {label: "rock_6_2", value: true, tier: 6, enchant: 2},
+                {label: "rock_6_3", value: true, tier: 6, enchant: 3},
+                {label: "rock_6_4", value: true, tier: 6, enchant: 3},
+                {label: "rock_7_0", value: true, tier: 7, enchant: 0},
+                {label: "rock_7_1", value: true, tier: 7, enchant: 1},
+                {label: "rock_7_2", value: true, tier: 7, enchant: 2},
+                {label: "rock_7_3", value: true, tier: 7, enchant: 3},
+                {label: "rock_7_4", value: true, tier: 7, enchant: 3},
+                {label: "rock_8_0", value: true, tier: 8, enchant: 0},
+                {label: "rock_8_1", value: true, tier: 8, enchant: 1},
+                {label: "rock_8_2", value: true, tier: 8, enchant: 2},
+                {label: "rock_8_3", value: true, tier: 8, enchant: 3},
+                {label: "rock_8_4", value: true, tier: 8, enchant: 3},
+            ],
+            HIDE: [
+                {label: "hide_2_0", value: true, tier: 2, enchant: 0},
+                {label: "hide_3_0", value: true, tier: 3, enchant: 0},
+                {label: "hide_4_0", value: true, tier: 4, enchant: 0},
+                {label: "hide_4_1", value: true, tier: 4, enchant: 1},
+                {label: "hide_4_2", value: true, tier: 4, enchant: 2},
+                {label: "hide_4_3", value: true, tier: 4, enchant: 3},
+                {label: "hide_4_4", value: true, tier: 4, enchant: 3},
+                {label: "hide_5_0", value: true, tier: 5, enchant: 0},
+                {label: "hide_5_1", value: true, tier: 5, enchant: 1},
+                {label: "hide_5_2", value: true, tier: 5, enchant: 2},
+                {label: "hide_5_3", value: true, tier: 5, enchant: 3},
+                {label: "hide_5_4", value: true, tier: 5, enchant: 3},
+                {label: "hide_6_0", value: true, tier: 6, enchant: 0},
+                {label: "hide_6_1", value: true, tier: 6, enchant: 1},
+                {label: "hide_6_2", value: true, tier: 6, enchant: 2},
+                {label: "hide_6_3", value: true, tier: 6, enchant: 3},
+                {label: "hide_6_4", value: true, tier: 6, enchant: 3},
+                {label: "hide_7_0", value: true, tier: 7, enchant: 0},
+                {label: "hide_7_1", value: true, tier: 7, enchant: 1},
+                {label: "hide_7_2", value: true, tier: 7, enchant: 2},
+                {label: "hide_7_3", value: true, tier: 7, enchant: 3},
+                {label: "hide_7_4", value: true, tier: 7, enchant: 3},
+                {label: "hide_8_0", value: true, tier: 8, enchant: 0},
+                {label: "hide_8_1", value: true, tier: 8, enchant: 1},
+                {label: "hide_8_2", value: true, tier: 8, enchant: 2},
+                {label: "hide_8_3", value: true, tier: 8, enchant: 3},
+                {label: "hide_8_4", value: true, tier: 8, enchant: 3},
+            ],
+            ORE: [
+                {label: "ore_2_0", value: true, tier: 2, enchant: 0},
+                {label: "ore_3_0", value: true, tier: 3, enchant: 0},
+                {label: "ore_4_0", value: true, tier: 4, enchant: 0},
+                {label: "ore_4_1", value: true, tier: 4, enchant: 1},
+                {label: "ore_4_2", value: true, tier: 4, enchant: 2},
+                {label: "ore_4_3", value: true, tier: 4, enchant: 3},
+                {label: "ore_4_4", value: true, tier: 4, enchant: 3},
+                {label: "ore_5_0", value: true, tier: 5, enchant: 0},
+                {label: "ore_5_1", value: true, tier: 5, enchant: 1},
+                {label: "ore_5_2", value: true, tier: 5, enchant: 2},
+                {label: "ore_5_3", value: true, tier: 5, enchant: 3},
+                {label: "ore_5_4", value: true, tier: 5, enchant: 3},
+                {label: "ore_6_0", value: true, tier: 6, enchant: 0},
+                {label: "ore_6_1", value: true, tier: 6, enchant: 1},
+                {label: "ore_6_2", value: true, tier: 6, enchant: 2},
+                {label: "ore_6_3", value: true, tier: 6, enchant: 3},
+                {label: "ore_6_4", value: true, tier: 6, enchant: 3},
+                {label: "ore_7_0", value: true, tier: 7, enchant: 0},
+                {label: "ore_7_1", value: true, tier: 7, enchant: 1},
+                {label: "ore_7_2", value: true, tier: 7, enchant: 2},
+                {label: "ore_7_3", value: true, tier: 7, enchant: 3},
+                {label: "ore_7_4", value: true, tier: 7, enchant: 3},
+                {label: "ore_8_0", value: true, tier: 8, enchant: 0},
+                {label: "ore_8_1", value: true, tier: 8, enchant: 1},
+                {label: "ore_8_2", value: true, tier: 8, enchant: 2},
+                {label: "ore_8_3", value: true, tier: 8, enchant: 3},
+                {label: "ore_8_4", value: true, tier: 8, enchant: 3},
+            ],
+        }
+    });
+    
+    const [activeTab, setActiveTab] = useState('');
+
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    const toggleFullscreen = () => setIsFullscreen(v => !v);
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const parent = canvas.parentElement;
+        if (!parent) return;
+
+        // ustaw canvas internal resolution na rozmiar kontenera
+        if (isFullscreen) {
+            const rect = parent.getBoundingClientRect();
+            const w = Math.floor(rect.width);
+            const h = Math.floor(rect.height);
+
+            if (canvas.width !== w) canvas.width = w;
+            if (canvas.height !== h) canvas.height = h;
+        } else {
+            // normalny tryb
+            if (canvas.width !== 500) canvas.width = 500;
+            if (canvas.height !== 500) canvas.height = 500;
+        }
+    }, [isFullscreen]);
+
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d');
+        if (canvas && ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            radarWidget.harvestable_list.forEach(resource => {
+                RadarRendering.renderResource(ctx, canvas, radarPosition, resource, zoom, displayedSettings);
+            });
+
+            radarWidget.dungeon_list.forEach(dungeon => {
+                RadarRendering.renderDungeon(ctx, canvas, radarPosition, dungeon, zoom, displayedSettings);
+            });
+
+            radarWidget.chest_list.forEach(chest => {
+                RadarRendering.renderChest(ctx, canvas, radarPosition, chest, zoom, displayedSettings);
+            });
+
+            radarWidget.mist_list.forEach(mist => {
+                RadarRendering.renderMist(ctx, canvas, radarPosition, mist, zoom, displayedSettings);
+            });
+
+            radarWidget.mob_list.forEach(mob => {
+                RadarRendering.renderMob(ctx, canvas, radarPosition, { ...mob, tier: Number(mob.tier) }, zoom, displayedSettings);
+            });
+
+            ctx.fillStyle = 'yellow';
+            ctx.beginPath();
+            ctx.fill();
+            ctx.restore();
+
+            RadarRendering.renderCenter(ctx, canvas);
+            RadarRendering.renderTheScreenView(ctx, canvas, zoom);
+        }
+
+    }, [radarPosition, zoom, radarWidget, displayedSettings, isFullscreen]);
+
+    const normalize = (v?: string | null) => (v ?? "").trim().toLowerCase();
+
+    const { sortedPlayers, friendsCount, enemyCount } = useMemo(() => {
+        const myGuild = normalize(me?.guild);
+        const myAlliance = normalize(me?.alliance);
+
+        // najpierw uwzględnij filtry frakcji (tak jak miałeś)
+        const base = (radarWidget?.players_list ?? []).filter((p: any) => {
+            const key = p.faction as unknown as keyof typeof displayedSettings.players_factions;
+            return displayedSettings.players_factions[key]?.value ?? true;
+        });
+
+        const bucket = (p: any) => {
+            const pg = normalize(p.guild);
+            const pa = normalize(p.alliance);
+
+            // 2 = guild (na dole)
+            if (myGuild && pg && pg === myGuild) return 2;
+
+            // 1 = alliance (wyżej)
+            if (myAlliance && pa && pa === myAlliance) return 1;
+
+            // 0 = obcy (na górze)
+            return 0;
+        };
+
+        let friends = 0;
+        let enemies = 0;
+
+        for (const p of base) {
+            const b = bucket(p);
+            if (b === 0) enemies += 1;
+            else friends += 1; // guild + alliance
+        }
+
+        const sorted = base
+            .slice()
+            .sort((a: any, b: any) => {
+            const ba = bucket(a);
+            const bb = bucket(b);
+
+            // 0 (enemy) na górze, 2 (guild) na dole
+            if (ba !== bb) return ba - bb;
+
+            // wewnątrz bucketu możesz zostawić Twoje sortowanie po faction:
+            const fa = Number(a.faction);
+            const fb = Number(b.faction);
+            if (fa !== fb) return fb - fa;
+
+            // na koniec stabilnie po nicku
+            return String(a.username).localeCompare(String(b.username));
+            });
+
+        return { sortedPlayers: sorted, friendsCount: friends, enemyCount: enemies };
+    }, [me?.guild, me?.alliance, radarWidget?.players_list, displayedSettings.players_factions]);
+
+    const setAllResourcesOfType = (resourceKey: string, value: boolean) => {
+        setDisplayedSettings(prev => {
+            const current = prev.resources[resourceKey as keyof typeof prev.resources] as any[] | undefined;
+            if (!current) return prev;
+
+            return {
+                ...prev,
+                resources: {
+                    ...prev.resources,
+                    [resourceKey]: current.map(it => ({ ...it, value })),
+                },
+            };
+        });
+    };
+
+    const toggleResourceEntry = (resourceKey: string, index: number) => {
+        setDisplayedSettings(prev => {
+            const current = prev.resources[resourceKey as keyof typeof prev.resources] as any[] | undefined;
+            if (!current) return prev;
+
+            return {
+                ...prev,
+                resources: {
+                    ...prev.resources,
+                    [resourceKey]: current.map((it, i) => (i === index ? { ...it, value: !it.value } : it)),
+                },
+            };
+        });
+    };
+
+
+    return (
+        // <div className={app.container}>
+        <Box
+            className={app.container}
+            sx={{
+                ...(isFullscreen
+                    ? {
+                        position: "fixed",
+                        inset: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        zIndex: 9999,
+                        backgroundColor: "#0b1f28",
+                        padding: "10px",
+                        boxSizing: "border-box",
+                    }
+                    : {}),
+            }}
+>
+            <Box sx={{ alignSelf: 'flex-end', marginBottom: '10px' }}>
+                <Button variant="contained" onClick={() => setActiveTab('settings')}>Settings</Button>
+                <Button
+                    variant="contained"
+                    sx={{ marginLeft: "10px" }}
+                    onClick={toggleFullscreen}
+                >
+                    {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                </Button>
+
+                {activeTab === 'settings' && (
+                    <Modal
+                        open={true}
+                        onClose={() => setActiveTab('')}
+                        aria-labelledby="settings-modal-title"
+                        aria-describedby="settings-modal-description"
+                    >
+                        <Paper sx={{ padding: '10px', maxHeight: '500px', overflowY: 'scroll', margin: 'auto', marginTop: '10%', width: '50%' }}>
+                            <Typography id="settings-modal-title" variant="h6">Settings</Typography>
+                            <Box sx={{ marginBottom: '10px' }}>
+                                <Typography variant="subtitle1">Display Settings</Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <Box>
+                                        <Typography variant="body1">Object Types</Typography>
+                                        {['RESOURCE', 'DUNGEONS', 'MOBS'].map(type => (
+                                            <Button
+                                                key={type}
+                                                variant={displayedSettings.object_types.includes(type) ? "contained" : "outlined"}
+                                                sx={{ margin: '5px' }}
+                                                onClick={() => setDisplayedSettings(prev => ({
+                                                    ...prev,
+                                                    object_types: prev.object_types.includes(type)
+                                                        ? prev.object_types.filter(t => t !== type)
+                                                        : [...prev.object_types, type]
+                                                }))}
+                                            >
+                                                {type}
+                                            </Button>
+                                        ))}
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="body1">Players Factions</Typography>
+                                        {Object.keys(displayedSettings.players_factions).map(factionKey => {
+                                            const faction = factionKey as unknown as keyof typeof displayedSettings.players_factions;
+                                            return (
+                                                <Button
+                                                    key={faction}
+                                                    variant={displayedSettings.players_factions[faction].value ? "contained" : "outlined"}
+                                                    sx={{ margin: '5px' }}
+                                                    onClick={() => setDisplayedSettings(prev => ({
+                                                        ...prev,
+                                                        players_factions: {
+                                                            ...prev.players_factions,
+                                                            [faction]: {
+                                                                ...prev.players_factions[faction],
+                                                                value: !prev.players_factions[faction].value
+                                                            }
+                                                        }
+                                                    }))}
+                                                >
+                                                    {displayedSettings.players_factions[faction].label}
+                                                </Button>
+                                            );
+                                        })}
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="body1">Dungeons</Typography>
+                                        {['SOLO', 'AVALON', 'GROUP', 'CORRUPTED', 'HELLGATE', 'ROAMING', 'DISPLAY_NAME'].map(dungeon => (
+                                            <Button
+                                                key={dungeon}
+                                                variant={displayedSettings.dungeons.includes(dungeon) ? "contained" : "outlined"}
+                                                sx={{ margin: '5px' }}
+                                                onClick={() => setDisplayedSettings(prev => ({
+                                                    ...prev,
+                                                    dungeons: prev.dungeons.includes(dungeon)
+                                                        ? prev.dungeons.filter(d => d !== dungeon)
+                                                        : [...prev.dungeons, dungeon]
+                                                }))}
+                                            >
+                                                {dungeon}
+                                            </Button>
+                                        ))}
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="body1">Resources</Typography>
+
+                                        {Object.keys(displayedSettings.resources).map((resourceKey) => (
+                                            <Box key={resourceKey} sx={{ marginBottom: "10px" }}>
+                                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                                        {resourceKey}
+                                                    </Typography>
+
+                                                    <Box sx={{ display: "flex", gap: "8px" }}>
+                                                        <Button
+                                                            size="small"
+                                                            variant="contained"
+                                                            onClick={() => setAllResourcesOfType(resourceKey, true)}
+                                                        >
+                                                            All
+                                                        </Button>
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            onClick={() => setAllResourcesOfType(resourceKey, false)}
+                                                        >
+                                                            None
+                                                        </Button>
+                                                    </Box>
+                                                </Box>
+
+                                                <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                                                    {(displayedSettings.resources[resourceKey as keyof typeof displayedSettings.resources] as any[]).map((res, index) => (
+                                                        <Button
+                                                            key={res.label ?? index}
+                                                            variant={res.value ? "contained" : "outlined"}
+                                                            sx={{ margin: "5px", flex: index < 2 ? "1 1 calc(50% - 10px)" : "1 1 calc(20% - 10px)" }}
+                                                            onClick={() => toggleResourceEntry(resourceKey, index)}
+                                                        >
+                                                            <img
+                                                                src={`/mapMarker/resources/${res.label}.png`}
+                                                                alt={res.label}
+                                                                style={{ width: "40px", height: "40px" }}
+                                                            />
+                                                        </Button>
+                                                    ))}
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                    </Box>
+
+                                </Box>
+                            </Box>
+                            <Button variant="contained" onClick={() => setActiveTab('')}>Close</Button>
+                        </Paper>
+                    </Modal>
+                )}
+            </Box>
+            {!isFullscreen && (
+                <Box sx={{ textAlign: "left" }}>
+                    <Paper sx={{ padding: "5px", border: "1px solid black" }}>
+                        <Typography>Zoom: {zoom.toFixed(1)}</Typography>
+                    </Paper>
+                    <Paper sx={{ padding: "5px", border: "1px solid black" }}>
+                        <Typography>Position: x {radarPosition.x.toFixed(1)} y {radarPosition.y.toFixed(1)}</Typography>
+                    </Paper>
+                </Box>
+            )}
+
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: "12px",
+                    width: "100%",
+                    ...(isFullscreen ? { height: "calc(100vh - 60px)" } : {}),
+                }}
+            >
+                {/* MAPA */}
+                <Box
+                    sx={{
+                        flex: isFullscreen ? "1 1 auto" : 1,
+                        position: "relative",
+                        border: "2px solid blue",
+                        overflow: "hidden",
+                        ...(isFullscreen ? { height: "100%" } : { width: 500, height: 508 }),
+                    }}
+                >
+                    <canvas
+                        ref={canvasRef}
+                        style={{
+                            border: "2px solid red",
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                        }}
+                    />
+                </Box>
+
+                {/* LISTA */}
+                <Box
+                    sx={{
+                        flex: "0 0 auto",
+                        ...(isFullscreen
+                            ? { width: "380px", height: "100%" }
+                            : { flex: 1, textAlign: "left", marginTop: "20px", marginLeft: "20px" }),
+                    }}
+                >
+                    <Box sx={{ height: "100%", maxHeight: isFullscreen ? "100%" : "500px", overflowY: "auto", position: "relative" }}>
+                        {/* STICKY HEADER */}
+                        <Paper
+                            sx={{
+                                position: "sticky",
+                                top: 0,
+                                zIndex: 10,
+                                padding: "10px",
+                                marginBottom: "10px",
+                                border: "1px solid black",
+                                backgroundColor: "#0f2a33",
+                            }}
+                        >
+                            <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                                Enemy: <span style={{ color: enemyCount > 0 ? 'red' : 'inherit' }}>{enemyCount}</span>, Friends: {friendsCount}
+                            </Typography>
+                        </Paper>
+
+                        {/* LIST */}
+                        {sortedPlayers.map((player: any) => (
+                            <Paper
+                                key={player.id}
+                                sx={{
+                                    padding: "10px",
+                                    marginBottom: "10px",
+                                    border: "1px solid black",
+                                }}
+                            >
+                                <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <img
+                                        src={`/mapMarker/faction/faction_${player.faction}.png`}
+                                        alt={`Faction ${player.faction}`}
+                                        style={{ width: "34px", height: "34px" }}
+                                    />
+                                    <Typography variant="body1" sx={{ color: player.isMounted ? "blue" : "red" }}>
+                                        {player.isMounted ? "M" : "D"}
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        {player.username}, ID: {player.id}
+                                    </Typography>
+                                </Box>
+
+                                <Typography variant="body1">
+                                    Guild: {player.guild}, Alliance: {player.alliance}
+                                </Typography>
+
+                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                                    {player.equipments.map((equipment: string, index: number) =>
+                                        equipment === "None" ? (
+                                            <Box
+                                                key={index}
+                                                sx={{
+                                                    width: "40px",
+                                                    height: "40px",
+                                                    backgroundColor: "#333",
+                                                    border: "2px solid orange",
+                                                }}
+                                            />
+                                        ) : (
+                                            <img
+                                                key={index}
+                                                src={`https://render.albiononline.com/v1/item/${equipment}`}
+                                                alt={equipment}
+                                                style={{ width: "40px", height: "40px", border: "2px solid orange" }}
+                                            />
+                                        )
+                                    )}
+                                </Box>
+                            </Paper>
+                        ))}
+                    </Box>
+                </Box>
+            </Box>
+
+            {!isFullscreen && (
+                <Box sx={{ textAlign: "center" }}>
+                    <Button variant="contained" onClick={() => setZoom(z => Math.min(z + 0.2, 5))}>Zoom In</Button>
+                    <Button variant="contained" onClick={() => setZoom(z => Math.max(z - 0.2, 1))}>Zoom Out</Button>
+                </Box>
+            )}
+        </Box>
+        // </div>
+    );
+};
+
+export default Radar;
