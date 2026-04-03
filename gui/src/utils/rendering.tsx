@@ -73,7 +73,7 @@ class RadarRendering {
 
          /* Render Iteam */
          const img = new Image();
-         img.src = `/public/mapMarker/butterfly/${butterfly_map[enchant]}.png`;
+         img.src = `/mapMarker/butterfly/${butterfly_map[enchant]}.png`;
 
         const adjustedX = canvas.width / 2 - rX - itemSize / 2 + 15;
         const adjustedY = canvas.height / 2 - rY - itemSize / 2 - 10;
@@ -88,7 +88,7 @@ class RadarRendering {
 
          /* Render Iteam */
          const img = new Image();
-         img.src = `/public/mapMarker/additionals/auto_attack.png`;
+         img.src = `/mapMarker/additionals/auto_attack.png`;
 
         const adjustedX = canvas.width / 2 - rX - itemSize / 2 - 15;
         const adjustedY = canvas.height / 2 - rY - itemSize / 2 - 10;
@@ -158,7 +158,7 @@ class RadarRendering {
 
         /* Render Iteam */
         const img = new Image();
-        img.src = `/public/mapMarker/resources/${resource.unique_name}.png`;
+        img.src = `/mapMarker/resources/${resource.unique_name}.png`;
         img.onload = () => {
             ctx.drawImage(img, canvas.width / 2 - rX - this.ResourceSize / 2, canvas.height / 2 - rY - this.ResourceSize / 2, this.ResourceSize, this.ResourceSize);
         };
@@ -191,7 +191,7 @@ class RadarRendering {
         
         /* Render Iteam */
         const img = new Image();
-        img.src = `/public/mapMarker/dungeons/${dungeon.unique_name}.png`;
+        img.src = `/mapMarker/dungeons/${dungeon.unique_name}.png`;
         
         img.onload = () => {
             ctx.drawImage(img, canvas.width / 2 - rX - this.ResourceSize / 2, canvas.height / 2 - rY - this.ResourceSize / 2, this.ResourceSize, this.ResourceSize);
@@ -213,7 +213,7 @@ class RadarRendering {
         }
     }
 
-    static renderChest(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, radarPosition: any, chest: any, zoom: number, displayedSettings: any) {
+    static renderChest(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, radarPosition: any, chest: any, zoom: number, _displayedSettings: any) {
         const rX =  this.getRelativePositionX(radarPosition, chest.location, zoom);
         const rY =  this.getRelativePositionY(radarPosition, chest.location, zoom);
 
@@ -230,7 +230,7 @@ class RadarRendering {
         
         /* Render Iteam */
         const img = new Image();
-        img.src = `/public/mapMarker/chest/${chest_map[chest.enchant]}.png`;
+        img.src = `/mapMarker/chest/${chest_map[chest.enchant]}.png`;
         
         img.onload = () => {
             ctx.drawImage(img, canvas.width / 2 - rX - this.ResourceSize / 2, canvas.height / 2 - rY - this.ResourceSize / 2, this.ResourceSize, this.ResourceSize);
@@ -246,13 +246,13 @@ class RadarRendering {
         }
     }
 
-    static renderMist(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, radarPosition: any, mist: any, zoom: number, displayedSettings: any) {
+    static renderMist(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, radarPosition: any, mist: any, zoom: number, _displayedSettings: any) {
         const rX =  this.getRelativePositionX(radarPosition, mist.location, zoom);
         const rY =  this.getRelativePositionY(radarPosition, mist.location, zoom);
 
         /* Render Iteam */
         const img = new Image();
-        img.src = `/public/mapMarker/mists/mist_${mist.enchant}.png`;
+        img.src = `/mapMarker/mists/mist_${mist.enchant}.png`;
         
         img.onload = () => {
             ctx.drawImage(img, canvas.width / 2 - rX - this.mistSize / 2, canvas.height / 2 - rY - this.mistSize / 2, this.mistSize, this.mistSize);
@@ -292,7 +292,7 @@ class RadarRendering {
         if(renderResource){
             /* Render Iteam */
             const img = new Image();
-            img.src = `/public/mapMarker/resources/${mob.avatar}.png`;
+            img.src = `/mapMarker/resources/${mob.avatar}.png`;
             img.onload = () => {
                 ctx.drawImage(img, canvas.width / 2 - rX - this.ResourceSize / 2, canvas.height / 2 - rY - this.ResourceSize / 2, this.ResourceSize, this.ResourceSize);
             };
@@ -306,7 +306,7 @@ class RadarRendering {
 
                 /* Render Iteam */
                 const img = new Image();
-                img.src = `/public/mapMarker/mobs/${mob.avatar}.png`;
+                img.src = `/mapMarker/mobs/${mob.avatar}.png`;
                 img.onload = () => {
                     ctx.drawImage(img, canvas.width / 2 - rX - this.ResourceSize / 2, canvas.height / 2 - rY - this.ResourceSize / 2, this.ResourceSize, this.ResourceSize);
                 };

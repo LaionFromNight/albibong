@@ -1,4 +1,3 @@
-from albibong.models.models import BaseModel
 import struct
 import time
 import threading
@@ -10,7 +9,7 @@ from albibong.resources.Offset import Offsets
 import math
 
 
-class Radar(BaseModel):
+class Radar:
     def __init__(self) -> None:
         self.settings = {
             "expiration_time": 180, # 3 minutes
@@ -281,6 +280,17 @@ class Radar(BaseModel):
         if id in self.players_list:
             self.players_list[id]["isMounted"] = is_mounted
             self.debounce_handle_update()
+
+    def update_player_equipment(self, id, equipments):
+        if id not in self.players_list:
+            return
+
+        named_equipments = []
+        for eq in equipments:
+            named_equipments.append(Item.get_item_from_code(str(eq)).unique_name)
+
+        self.players_list[id]["equipments"] = named_equipments
+        self.debounce_handle_update()
             
     def handle_event_leave(self, id):
         founded = False
@@ -311,10 +321,8 @@ class Radar(BaseModel):
         founded = False
         position_bytes = parameters[1][9:17]
 
-        # TODO handle KEY_SYNC
-        # if id in self.players_list:
-        #     posX, posY = self._decrypt_position(position_bytes, self.XOR_CODE)
-        #     founded = True
+        # TODO: use KEY_SYNC to update live player positions.
+        # Right now the radar still tracks players only from NEW_CHARACTER snapshots.
 
         if id in self.mist_list:
             posX, posY = self._decrypt_position(position_bytes)
@@ -343,8 +351,6 @@ class Radar(BaseModel):
         }
 
     def _decrypt_position(self, encrypted_position, xor_code=None):
-        # TODO handle KEY_SYNC
-        # xor_code = b'\x01\x02\x03\x04\x05\x06\x07\x08'
         if xor_code is None:
             return struct.unpack('ff', bytes(encrypted_position))
 

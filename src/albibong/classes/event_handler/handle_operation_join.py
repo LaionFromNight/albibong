@@ -3,7 +3,6 @@ from albibong.classes.location import Location
 from albibong.classes.utils import Utils
 from albibong.classes.world_data import WorldData
 from albibong.threads.websocket_server import send_event
-import json
 
 
 def handle_operation_join(world_data: WorldData, parameters):
@@ -12,8 +11,6 @@ def handle_operation_join(world_data: WorldData, parameters):
     world_data.me.uuid = Utils.convert_int_arr_to_uuid(parameters[1])
     world_data.me.guild = parameters[57] if 57 in parameters else ""
     world_data.me.alliance = parameters[78] if 78 in parameters else ""
-    # print(json.dumps(parameters, default=str, indent=2))
-
     # update relative id if character has initialized before
     WorldDataUtils.convert_id_to_name(
         world_data,
@@ -31,21 +28,16 @@ def handle_operation_join(world_data: WorldData, parameters):
     world_data.characters[world_data.me.username] = world_data.me
     world_data.char_uuid_to_username[world_data.me.uuid] = world_data.me.username
 
-    # put self in party
-    world_data.party_members.add(world_data.me.username)
-
-    # set map my character is currently in
-    if parameters[8][0] == "@":
+    # TODO: JOIN still does not initialize `current_map` reliably for every zone.
+    # The old app forced a zone change after startup; keep that expectation for now.
+    if 8 in parameters and parameters[8][0] == "@":
         area = parameters[8].split("@")
-        if area[1] == "RANDOMDUNGEON" or area[1] == "MISTS":
+        if area[1] == "RANDOMDUNGEON":
             check_map = Location.get_location_from_code(area[1])
-            WorldDataUtils.start_current_dungeon(
-                world_data, type=check_map.type, name=check_map.name
-            )
+            WorldDataUtils.set_dungeon_status(world_data, check_map)
 
     ws_init_character(world_data)
     WorldDataUtils.ws_update_location(world_data)
-    WorldDataUtils.ws_update_damage_meter(world_data)
 
 
 def ws_init_character(world_data: WorldData):
@@ -53,12 +45,6 @@ def ws_init_character(world_data: WorldData):
         "type": "init_character",
         "payload": {
             "username": world_data.me.username,
-            "fame": world_data.me.fame_gained,
-            "re_spec": world_data.me.re_spec_gained,
-            "silver": world_data.me.silver_gained,
-            "might": world_data.me.might_gained,
-            "favor": world_data.me.favor_gained,
-            "weapon": world_data.me.equipment[0].image,
             "guild": world_data.me.guild,
             "alliance": world_data.me.alliance,
         },
